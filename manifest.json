@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "name": "Ebisen",
+  "description": "This extension helps you to learn by using ebbinghaus forgetting curve",
+  "version": "0.5",
+  "icons": {
+    "16": "images/icon/icon_16.png",
+    "48": "images/icon/icon_48.png",
+    "128": "images/icon/icon_128.png"
+  },
+  "background": {
+    "scripts": ["js/background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon/icon_19.png",
+      "38": "images/icon/icon_38.png"
+    },
+    "default_title": "Ebisen",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ]
+}
