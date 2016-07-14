@@ -1,4 +1,4 @@
-/* global chrome */
+/* global chrome, $ */
 
 function getCurrentTabUrl(callback) {
   var queryInfo = {
@@ -22,7 +22,6 @@ function initData() {
         read: {},
         unread: {}
       };
-      console.log(urlHash);
       chrome.storage.local.set(urlHash);
       console.log('finish initialization.');
     }else{
@@ -33,22 +32,27 @@ function initData() {
 
 var renderStatus = function(statusText, type){
   var html = '<div class="alert alert-' + type + '" role="alert">' + statusText + '</div>';
-  document.getElementById('status').innerHTML = html;
+  $('#status').html(html);
 };
 
 var renderUrls = function(url_hash, date){
   console.log('rendering urls....');
   // render UNREAD list
-  var unreadHtml = '<ol>';
-  for(var unreadUrl in url_hash['unread'][date]){
-    unreadHtml += '<li><a href=';
-    unreadHtml += url_hash['unread'][date][unreadUrl];
-    unreadHtml += ' class="unread-url" target="_blank">';
-    unreadHtml += trim(url_hash['unread'][date][unreadUrl]);
-    unreadHtml += '</a></li>';
+  if(url_hash['unread'][date][0]){
+    var unreadHtml = '<ol>';
+    for(var unreadUrl in url_hash['unread'][date]){
+      unreadHtml += '<li><a href=';
+      unreadHtml += url_hash['unread'][date][unreadUrl];
+      unreadHtml += ' class="unread-url" target="_blank">';
+      unreadHtml += trim(url_hash['unread'][date][unreadUrl]);
+      unreadHtml += '</a></li>';
+    }
+    unreadHtml += '</ol>';
+    $('#unread-urls').html(unreadHtml);
+  }else{
+    var noUrls = '<p>Nothing to Read</p>';
+    $('#unread-urls').html(noUrls);
   }
-  unreadHtml += '</ol>';
-  document.getElementById('unread-urls').innerHTML = unreadHtml;
 
   // read list
   var readHtml = '<ol>';
@@ -60,13 +64,10 @@ var renderUrls = function(url_hash, date){
     readHtml += '</a></li>';
   }
   readHtml += '</ol>';
-  document.getElementById('read-urls').innerHTML = readHtml;
+  $('#read-urls').html(readHtml);
 
   // add event lister after rendering
-  console.log(className.length);
-  for(var i = 0; i < className.length; i++) {
-    className[i].addEventListener('click', moveUrlToRead, false);
-  }
+  $('.unread-url').on('click', moveUrlToRead);
 };
 
 var trim = function(url) {
@@ -77,14 +78,44 @@ var clearData = function() {
   chrome.storage.local.clear();
 };
 
-var dateParser = function() {
-  var d = new Date();
+var dateParser = function(d) {
   var date = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
   return date;
 };
 
-document.getElementById('clearButton').addEventListener('click', function() {
-  var date = dateParser();
+var return_today = function() {
+  var d = new Date();
+  var date = dateParser(d);
+  return date;
+};
+
+var dateArray = function(){
+  // ["6/13/2016", "6/14/2016", "6/20/2016", "6/27/2016", "7/13/2016"]
+  var d = new Date();
+  var array, today, tomorrow, few_days, week, few_weeks, month;
+  today = return_today();
+
+  d.setDate(d.getDate() + 1);
+  tomorrow = dateParser(d);
+
+  d.setDate(d.getDate() + 2);
+  few_days = dateParser(d);
+
+  d.setDate(d.getDate() + 4);
+  week = dateParser(d);
+
+  d.setDate(d.getDate() + 7);
+  few_weeks = dateParser(d);
+
+  d.setDate(d.getDate() + 14);
+  month = dateParser(d);
+
+  array = [today, tomorrow, few_days, week, few_weeks, month];
+  return array;
+};
+
+$('#clearButton').on('click', function() {
+  var date = return_today();
 
   clearData();
   initData();
@@ -94,30 +125,33 @@ document.getElementById('clearButton').addEventListener('click', function() {
   });
 });
 
-document.getElementById('addButton').addEventListener('click', function() {
+$('#addButton').on('click', function() {
   getCurrentTabUrl(function(url) {
     console.log('Detecting if you have registered ' + url);
 
-    var date = dateParser();
+    var today = return_today();
+    var dates = dateArray();
+    console.log(dates);
 
     chrome.storage.local.get(function(values){
+      $.each(dates, function(){
+        if(typeof(values['unread'][this]) === 'undefined'){
+          values['unread'][this] = [];
+        }
 
-      if(typeof(values['unread'][date]) === 'undefined'){
-        values['unread'][date] = [];
-      }
+        if(values['unread'][this].includes(url)){
+          console.log('Already Added!');
+          renderStatus('Already Added!', 'info');
+        }else{
+          values['unread'][this].push(url);
+          console.log('Added!');
+          renderStatus('Added!', 'success');
+        }
 
-      if(values['unread'][date].includes(url)){
-        console.log('Already Added!');
-        renderStatus('Already Added!', 'info');
-      }else{
-        values['unread'][date].push(url);
-        console.log('Added!');
-        renderStatus('Added!', 'success');
-      }
+        chrome.storage.local.set(values);
 
-      chrome.storage.local.set(values);
-
-      renderUrls(values, date);
+        renderUrls(values, today);
+      });
     });
   });
 });
@@ -125,7 +159,7 @@ document.getElementById('addButton').addEventListener('click', function() {
 window.onload = function(){
   // Prepare url hash in local storage
   initData();
-  var date = dateParser();
+  var date = return_today();
 
   chrome.storage.local.get(function(values){
     renderUrls(values, date);
@@ -133,11 +167,10 @@ window.onload = function(){
 };
 
 // move url from unread urls to read urls
-var className = document.getElementsByClassName('unread-url');
 var moveUrlToRead = function(){
   console.log('move url to read list');
   var url = this.href;
-  var date = dateParser();
+  var date = return_today();
 
   chrome.storage.local.get(function(values){
     var index = values['unread'][date].indexOf(url);
