@@ -2,28 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ebisen</title>
-  <link rel="stylesheet" href="css/material.min.css"/>
+  <link rel="stylesheet" href="css/bootstrap.min.css"/>
   <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
-<div class="demo-card-wide mdl-card mdl-shadow--2dp">
-  <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Ebisen</h2>
-  </div>
-  <div class="mdl-card__supporting-text">
-    <div id="status"></div>
-  </div>
-  <div class="mdl-card__actions mdl-card--border">
-    <button id="clearButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
-      <i class="material-icons">clear</i>
-    </button>
-    <button id="addButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-      <i class="material-icons">add</i>
-    </button>
+<div class="wrapper">
+  <div class="container-fluid">
+    <h1 class="title">
+      Ebisen
+      <button id="clearButton" class="pull-right btn btn-danger ml10">
+        <i class="material-icons">clear</i>
+      </button>
+      <button id="addButton" class="pull-right btn btn-success">
+        <i class="material-icons">add</i>
+      </button>
+    </h1>
+    <div class="row">
+      <div class="col-md-12">
+        <div id="status"></div>
+
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            To read
+          </div>
+          <div class="panel-body">
+            <div id="unread-urls"></div>
+          </div>
+        </div>
+
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            Reading
+          </div>
+          <div class="panel-body">
+            <div id="read-urls"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 </div>
-<script src="js/material.min.js"></script>
 <script src="js/main.js"></script>
+<script src="js/jquery-2.1.1.min.js"></script>
 </body>
 </html>
