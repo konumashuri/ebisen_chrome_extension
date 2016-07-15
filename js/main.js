@@ -18,10 +18,26 @@ function getCurrentTabUrl(callback) {
 function initData() {
   chrome.storage.local.get(function(values){
     if(typeof(values['read']) === 'undefined' && typeof(values['unread']) === 'undefined'){
+      var d = new Date();
+      var yesterday, today, tomorrow;
+
+      d.setDate(d.getDate() - 1);
+      yesterday = dateParser(d);
+      d.setDate(d.getDate() + 1);
+      today = dateParser(d);
+      d.setDate(d.getDate() + 1);
+      tomorrow = dateParser(d);
+
       var urlHash = {
         read: {},
         unread: {}
       };
+      for(var key in urlHash){
+        urlHash[key][yesterday] = [];
+        urlHash[key][today] = [];
+        urlHash[key][tomorrow] = [];
+      }
+
       chrome.storage.local.set(urlHash);
       console.log('finish initialization.');
     }else{
@@ -31,8 +47,12 @@ function initData() {
 }
 
 var renderStatus = function(statusText, type){
-  var html = '<div class="alert alert-' + type + '" role="alert">' + statusText + '</div>';
+  var html = '<div id="statusContent" class="alert alert-' + type + '" role="alert">' + statusText + '</div>';
   $('#status').html(html);
+
+  setTimeout(function(){
+    $('#statusContent').fadeOut('slow');
+  }, 750);
 };
 
 var renderUrls = function(url_hash, date){
@@ -50,8 +70,7 @@ var renderUrls = function(url_hash, date){
     unreadHtml += '</ol>';
     $('#unread-urls').html(unreadHtml);
   }else{
-    var noUrls = '<p>Nothing to Read</p>';
-    $('#unread-urls').html(noUrls);
+    $('#unread-urls').html('<p>Nothing to Read</p>');
   }
 
   // read list
@@ -64,6 +83,7 @@ var renderUrls = function(url_hash, date){
     readHtml += '</a></li>';
   }
   readHtml += '</ol>';
+  console.log(date);
   $('#read-urls').html(readHtml);
 
   // add event lister after rendering
@@ -83,7 +103,7 @@ var dateParser = function(d) {
   return date;
 };
 
-var return_today = function() {
+var returnToday = function() {
   var d = new Date();
   var date = dateParser(d);
   return date;
@@ -92,8 +112,7 @@ var return_today = function() {
 var dateArray = function(){
   // ["6/13/2016", "6/14/2016", "6/20/2016", "6/27/2016", "7/13/2016"]
   var d = new Date();
-  var array, today, tomorrow, few_days, week, few_weeks, month;
-  today = return_today();
+  var array, tomorrow, few_days, week, few_weeks, month;
 
   d.setDate(d.getDate() + 1);
   tomorrow = dateParser(d);
@@ -110,12 +129,12 @@ var dateArray = function(){
   d.setDate(d.getDate() + 14);
   month = dateParser(d);
 
-  array = [today, tomorrow, few_days, week, few_weeks, month];
+  array = [tomorrow, few_days, week, few_weeks, month];
   return array;
 };
 
 $('#clearButton').on('click', function() {
-  var date = return_today();
+  var date = returnToday();
 
   clearData();
   initData();
@@ -129,7 +148,7 @@ $('#addButton').on('click', function() {
   getCurrentTabUrl(function(url) {
     console.log('Detecting if you have registered ' + url);
 
-    var today = return_today();
+    var today = returnToday();
     var dates = dateArray();
     console.log(dates);
 
@@ -137,6 +156,9 @@ $('#addButton').on('click', function() {
       $.each(dates, function(){
         if(typeof(values['unread'][this]) === 'undefined'){
           values['unread'][this] = [];
+        }
+        if(typeof(values['read'][this]) === 'undefined'){
+          values['read'][this] = [];
         }
 
         if(values['unread'][this].includes(url)){
@@ -159,18 +181,14 @@ $('#addButton').on('click', function() {
 window.onload = function(){
   // Prepare url hash in local storage
   initData();
-  var date = return_today();
-
-  chrome.storage.local.get(function(values){
-    renderUrls(values, date);
-  });
+  $('#tab2').click();
 };
 
 // move url from unread urls to read urls
 var moveUrlToRead = function(){
   console.log('move url to read list');
   var url = this.href;
-  var date = return_today();
+  var date = returnToday();
 
   chrome.storage.local.get(function(values){
     var index = values['unread'][date].indexOf(url);
@@ -185,3 +203,27 @@ var moveUrlToRead = function(){
     }
   });
 };
+
+
+// tab
+$(function() {
+  var tab = $('li.tab');
+  tab.click(function(e) {
+    e.preventDefault();
+    tab.removeClass('active');
+    $(this).addClass('active');
+
+    var id = $(this).attr('id');
+    var d = new Date();
+    if(id === 'tab1'){
+      d.setDate(d.getDate() - 1);
+    }else if(id === 'tab3'){
+      d.setDate(d.getDate() + 1);
+    }
+    var date = dateParser(d);
+
+    chrome.storage.local.get(function(values){
+      renderUrls(values, date);
+    });
+  });
+});
