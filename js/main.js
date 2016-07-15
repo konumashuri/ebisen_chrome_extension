@@ -112,7 +112,9 @@ var returnToday = function() {
 var dateArray = function(){
   // ["6/13/2016", "6/14/2016", "6/20/2016", "6/27/2016", "7/13/2016"]
   var d = new Date();
-  var array, tomorrow, few_days, week, few_weeks, month;
+  var array, today, tomorrow, few_days, week, few_weeks, month;
+
+  today = dateParser(d);
 
   d.setDate(d.getDate() + 1);
   tomorrow = dateParser(d);
@@ -129,19 +131,15 @@ var dateArray = function(){
   d.setDate(d.getDate() + 14);
   month = dateParser(d);
 
-  array = [tomorrow, few_days, week, few_weeks, month];
+  array = [today, tomorrow, few_days, week, few_weeks, month];
   return array;
 };
 
 $('#clearButton').on('click', function() {
-  var date = returnToday();
-
   clearData();
   initData();
   renderStatus('Cleared!', 'success');
-  chrome.storage.local.get(function(values){
-    renderUrls(values, date);
-  });
+  $('#tab2').click();
 });
 
 $('#addButton').on('click', function() {
@@ -172,8 +170,13 @@ $('#addButton').on('click', function() {
 
         chrome.storage.local.set(values);
 
-        renderUrls(values, today);
+        console.log('--------------');
+        console.log(values['unread'][this]);
+        console.log(values['unread'][this].length);
+        console.log('--------------');
+
       });
+      renderUrls(values, today);
     });
   });
 });

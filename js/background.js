@@ -1,28 +1,17 @@
 /*global chrome */
 
 (function() {
+  chrome.tabs.onActivated.addListener(function() {
+    var d = new Date();
+    var date = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
 
-  // chrome.runtime.onMessage.addListener(function(message) {
-  //   if (message.type === 'setBadgeText') {
-  //     return chrome.browserAction.setBadgeText({
-  //       text: message.value
-  //     });
-  //   }
-  // });
-
-  chrome.tabs.onActivated.addListener(function(activeInfo) {
-    console.log('hoge');
-    return chrome.tabs.sendMessage(activeInfo.tabId, {
-      type: 'onActivated'
+    chrome.storage.local.get(function(values){
+      var count = values['unread'][date].length;
+      if(count > 0){
+        return chrome.browserAction.setBadgeText({ text: count.toString() });
+      }else{
+        return chrome.browserAction.setBadgeText({ text: '' });
+      }
     });
   });
-
-  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
-    if (changeInfo.status === 'complete') {
-      return chrome.tabs.sendMessage(tabId, {
-        type: 'onActivated'
-      });
-    }
-  });
-
 }).call(this);
