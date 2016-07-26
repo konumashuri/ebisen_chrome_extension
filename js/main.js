@@ -128,8 +128,26 @@ var Ebisen = {};
         // add event lister after rendering
         $('.unread-url').on('click', Ebisen.Article.move);
       },
-      //Url Listを切り替える => tab
-      change: function(){},
+      //Url Listを切り替える
+      change: function(tabs, tab_id){
+        var clicked_tab = $("#" + tab_id);
+
+        tabs.removeClass('active');
+        clicked_tab.addClass('active');
+
+        var id = clicked_tab.attr('id');
+        var d = new Date();
+        if(id === 'tab1'){
+          d.setDate(d.getDate() - 1);
+        }else if(id === 'tab3'){
+          d.setDate(d.getDate() + 1);
+        }
+        var date = Ebisen.DateManager.to_date(d);
+
+        chrome.storage.local.get(function(values){
+          Ebisen.ArticleList.render(values, date);
+        });
+      },
       //Url Listを削除する
       remove: function(){
         chrome.storage.local.clear();
@@ -221,29 +239,6 @@ var Ebisen = {};
     };
   })();
 
-  Ebisen.ViewManager = (function(){
-    return {
-      init: function(tab){
-        //e.preventDefault();
-        tab.removeClass('active');
-        $(this).addClass('active');
-
-        var id = $(this).attr('id');
-        var d = new Date();
-        if(id === 'tab1'){
-          d.setDate(d.getDate() - 1);
-        }else if(id === 'tab3'){
-          d.setDate(d.getDate() + 1);
-        }
-        var date = Ebisen.DateManager.to_date(d);
-
-        chrome.storage.local.get(function(values){
-          Ebisen.ArticleList.render(values, date);
-        });
-      }
-    };
-  })();
-
   Ebisen.Initializer = (function(){
     return {
       init: function(){
@@ -254,8 +249,8 @@ var Ebisen = {};
     };
   })();
 
-  $('.unread-url').on('click', Ebisen.Article.move());
-  $('#addButton').on('click', Ebisen.Article.add());
+  $('.unread-url').on('click', Ebisen.Article.move);
+  $('#addButton').on('click', Ebisen.Article.add);
   $('#clearButton').on('click', function() {
     Ebisen.ArticleList.remove();
     Ebisen.ArticleList.prepare();
@@ -263,7 +258,10 @@ var Ebisen = {};
     $('#tab2').click();
   });
 
-  $('li.tab').on('click', Ebisen.ViewManager.init('li.tab'));
+  $('li.tab').on('click', function(e) {
+    e.preventDefault();
+    Ebisen.ArticleList.change($('li.tab'), $(this).attr('id'));
+  });
 
   Ebisen.Initializer.init();
 })();
