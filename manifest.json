@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ebisen",
-  "description": "This extension helps you to learn by using ebbinghaus forgetting curve",
+  "description": "最近暑いですね。ところで、ネットで見たものってすぐに忘れることが多くて、同じことを何回も検索する毎日でした。この拡張には記憶の定着率を少しでも上げるための機能が付いています。と言ってもボタンを押したら「1日後, 3日後, 1週間後...」とリマインドしてくれます。",
   "version": "0.5",
   "icons": {
     "16": "images/icon/icon_16.png",
